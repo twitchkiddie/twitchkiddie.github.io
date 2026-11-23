@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tesla Fleet API authorization callback</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 40rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.4; }
+    label { display: block; margin-top: 1rem; font-weight: 600; }
+    input { width: 100%; box-sizing: border-box; padding: 0.5rem; font-family: ui-monospace, monospace; }
+    button { margin-top: 0.5rem; margin-right: 0.5rem; padding: 0.4rem 0.8rem; }
+    .note { margin-top: 1.5rem; }
+    .missing { color: #8a1f1f; }
+  </style>
+</head>
+<body>
+  <h1>Tesla authorization callback</h1>
+  <p class="note">Copy the authorization code below and paste it back into the setup chat within a few minutes. The code expires quickly.</p>
+  <label for="code">code</label>
+  <input id="code" type="text" readonly value="">
+  <button type="button" id="copy-code">Copy code</button>
+  <label for="state">state</label>
+  <input id="state" type="text" readonly value="">
+  <button type="button" id="copy-state">Copy state</button>
+  <p id="status"></p>
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var code = params.get('code') || '';
+      var state = params.get('state') || '';
+      var codeInput = document.getElementById('code');
+      var stateInput = document.getElementById('state');
+      var status = document.getElementById('status');
+      codeInput.value = code;
+      stateInput.value = state;
+      if (!code) {
+        status.textContent = 'No authorization code was found in the URL. If you just signed in, the redirect may have failed.';
+        status.className = 'missing';
+      }
+      function copyFrom(input, label) {
+        return function () {
+          if (!input.value) {
+            status.textContent = 'Nothing to copy for ' + label + '.';
+            return;
+          }
+          function done() {
+            status.textContent = 'Copied ' + label + '. Paste it back within a few minutes.';
+          }
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(input.value).then(done).catch(function () {
+              input.focus();
+              input.select();
+              try {
+                document.execCommand('copy');
+                done();
+              } catch (e) {
+                status.textContent = 'Select the ' + label + ' and copy it manually.';
+              }
+            });
+          } else {
+            input.focus();
+            input.select();
+            try {
+              document.execCommand('copy');
+              done();
+            } catch (e) {
+              status.textContent = 'Select the ' + label + ' and copy it manually.';
+            }
+          }
+        };
+      }
+      document.getElementById('copy-code').addEventListener('click', copyFrom(codeInput, 'code'));
+      document.getElementById('copy-state').addEventListener('click', copyFrom(stateInput, 'state'));
+    })();
+  </script>
+</body>
+</html>
